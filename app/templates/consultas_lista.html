@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<table border="1" cellpadding="6">
+    <tr>
+        <th>ID</th>
+        <th>Paciente</th>
+        <th>Profissional</th>
+        <th>Data/Hora</th>
+        <th>Status</th>
+    </tr>
+    {% for consulta in consultas %}
+    <tr>
+        <td>{{ consulta.id }}</td>
+        <td>{{ consulta.paciente_id }}</td>
+        <td>{{ consulta.profissional_id }}</td>
+        <td>{{ consulta.data_hora }}</td>
+        <td>{{ consulta.status }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}
