@@ -33,6 +33,8 @@ jobs:
 
       - name: Testes automatizados
         run: pytest
+        env:
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
 
       - name: Security gate - bloquear em achado Alto ou Crítico
         run: |

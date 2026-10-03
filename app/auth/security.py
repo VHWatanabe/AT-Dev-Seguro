@@ -5,8 +5,8 @@ from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer, HTTPBearer
 from app.models.user import TokenData, Role, User
 from app.models.client import ClientTokenData
+from app.config import settings
 
-SECRET_KEY = "chave-secreta-de-desenvolvimento-trocar-em-producao"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 TEMP_TOKEN_EXPIRE_MINUTES = 5
@@ -28,18 +28,18 @@ def verify_password(plain: str, hashed: str) -> bool:
 def create_access_token(user: User) -> str:
     expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     payload = {"sub": user.username, "id": user.id, "role": user.role.value, "exp": expire, "scope": "access"}
-    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    return jwt.encode(payload, settings.jwt_secret_key, algorithm=ALGORITHM)
 
 
 def create_temp_token(username: str) -> str:
     expire = datetime.now(timezone.utc) + timedelta(minutes=TEMP_TOKEN_EXPIRE_MINUTES)
     payload = {"sub": username, "exp": expire, "scope": "mfa_pending"}
-    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    return jwt.encode(payload, settings.jwt_secret_key, algorithm=ALGORITHM)
 
 
 def decode_token(token: str, expected_scope: str = "access") -> dict:
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[ALGORITHM])
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token expirado")
     except jwt.InvalidTokenError:
@@ -73,7 +73,7 @@ def create_client_token(client_id: str, scopes: list[str]) -> str:
         "type": "client_credentials",
         "exp": expire,
     }
-    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    return jwt.encode(payload, settings.jwt_secret_key, algorithm=ALGORITHM)
 
 
 def get_current_client(
@@ -81,7 +81,7 @@ def get_current_client(
     _credentials=Depends(bearer_scheme),
 ) -> ClientTokenData:
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[ALGORITHM])
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token expirado")
     except jwt.InvalidTokenError:
